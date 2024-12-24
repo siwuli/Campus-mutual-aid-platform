@@ -1,0 +1,369 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>华师校园悬赏 - 主页面</title>
+  <!-- 引入Bootstrap（CDN 方式） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+    /* 左侧侧边栏背景色、文字等 */
+    .sidebar {
+      background-color: #fff;
+      border-right: 1px solid #ddd;
+      min-height: 100vh;
+    }
+    .sidebar .nav-link {
+      color: #333;
+      font-weight: 500;
+    }
+    .sidebar .nav-link.active {
+      background-color: #f0f0f0;
+    }
+    .sidebar .nav-link:hover {
+      background-color: #e9e9e9;
+    }
+    /* 右侧内容区 */
+    .content-area {
+      padding: 1rem;
+    }
+    /* 任务卡片标题溢出处理 */
+    .card-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航栏 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container-fluid">
+      <!-- 左侧：LOGO + 文案 -->
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <!-- 这里可以放置logo图片 -->
+        <!-- <img src="{% static 'errands/img/logo.png' %}" alt="logo" height="30" class="me-2"> -->
+        <span>华师校园悬赏</span>
+      </a>
+
+      <!-- 中间：搜索框 -->
+      <form class="d-none d-md-flex mx-auto" style="width: 40%;" action="" method="get">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="搜索悬赏 / 订单" name="q">
+          <button class="btn btn-outline-primary" type="submit">搜索</button>
+        </div>
+      </form>
+
+      <!-- 右侧：消息、头像+名称 -->
+      <div class="d-flex align-items-center">
+        <!-- 消息图标 -->
+        <a href="#" class="text-decoration-none me-3 position-relative">
+          <span class="text-dark">
+            <i class="bi bi-bell" style="font-size: 1.2rem;"></i>
+          </span>
+          <!-- 可在这里显示消息数量小红点
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            3
+          </span>
+          -->
+        </a>
+        <!-- 用户头像及名称，下拉菜单示例 -->
+        <div class="dropdown">
+          <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <!-- 头像，可用真实图像或默认头像 -->
+            <!-- <img src="{% static 'errands/img/user.png' %}" alt="User" width="32" height="32" class="rounded-circle me-2"> -->
+            <span class="me-1 text-dark">{{ user.username|default:"用户" }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'profile' %}">个人中心</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'logout_page' %}">退出登录</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主体布局：左侧侧边栏 + 右侧内容区域 -->
+  <div class="container-fluid">
+    <div class="row">
+      <!-- 左侧侧边栏 -->
+      <div class="col-12 col-md-2 sidebar py-4">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-2">
+            <a class="nav-link active" aria-current="page" href="{% url 'main' %}">
+              <i class="bi bi-house-door me-2"></i>主页
+            </a>
+          </li>
+          <li class="nav-item mb-2">
+            <a class="nav-link" href="{% url 'take_tasks' %}">
+              <i class="bi bi-collection me-2"></i>悬赏接取
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 右侧主内容区 -->
+      <div class="col-12 col-md-10 content-area">
+        <!-- 上部分：个人发布的悬赏 -->
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            我发布的悬赏
+          </div>
+          <div class="card-body">
+            <!-- 这里显示你发布的悬赏列表、table或者卡片形式 -->
+            <p>示例：显示自己发布的悬赏任务列表。</p>
+            <!-- 例如： -->
+            <div class="row row-cols-1 row-cols-md-2 g-3">
+              {% for task in my_published_tasks %}
+              <div class="col">
+                <div class="card h-100" id="task-{{ task.id }}">
+                  <div class="card-body">
+                    <h5 class="card-title" title="{{ task.title }}">{{ task.title }}</h5>
+                    <p class="card-text">描述: {{ task.description|truncatechars:50 }}</p>
+                    <p class="card-text">酬劳: ￥{{ task.reward }}</p>
+                    <p class="card-text">状态: {{ task.get_status_display }}</p>
+                  </div>
+                  <div class="card-footer">
+                    {% if task.status == 'in_progress' %}
+                      <button class="btn btn-sm btn-outline-success" onclick="completeTask('{{ task.id }}')">完成任务</button>
+                    {% elif task.status == 'completed' %}
+                      {% if task.has_reviewed %}
+                        <button class="btn btn-sm btn-outline-secondary" disabled>已评价</button>
+                      {% else %}
+                        <button class="btn btn-sm btn-outline-primary" onclick="openReviewModal('{{ task.id }}', '{{ task.assigned_to.username }}')">前往评价</button>
+                      {% endif %}
+                    {% elif task.status == 'pending' %}
+                      <button class="btn btn-sm btn-outline-danger" onclick="cancelTask('{{ task.id }}')">取消任务</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+                <p>暂无已发布悬赏</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- 下部分：我接取的悬赏 -->
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            我接取的悬赏
+          </div>
+          <div class="card-body">
+            <!-- 这里显示你接单的悬赏列表 -->
+            <p>示例：显示自己接取的悬赏任务列表。</p>
+            <!-- 例如： -->
+            <div class="row row-cols-1 row-cols-md-2 g-3">
+              {% for task in my_taken_tasks %}
+              <div class="col">
+                <div class="card h-100" id="task-{{ task.id }}">
+                  <div class="card-body">
+                    <h5 class="card-title" title="{{ task.title }}">{{ task.title }}</h5>
+                    <p class="card-text">描述: {{ task.description|truncatechars:50 }}</p>
+                    <p class="card-text">酬劳: ￥{{ task.reward }}</p>
+                    <p class="card-text">状态: {{ task.get_status_display }}</p>
+                  </div>
+                  <div class="card-footer">
+                    {% if task.status == 'in_progress' %}
+                      <button class="btn btn-sm btn-outline-success" onclick="completeTask('{{ task.id }}')">完成任务</button>
+                    {% elif task.status == 'completed' %}
+                      {% if task.has_reviewed %}
+                        <button class="btn btn-sm btn-outline-secondary" disabled>已评价</button>
+                      {% else %}
+                        <button class="btn btn-sm btn-outline-primary" onclick="openReviewModal('{{ task.id }}', '{{ task.created_by.username }}')">前往评价</button>
+                      {% endif %}
+                    {% elif task.status == 'pending' %}
+                      <button class="btn btn-sm btn-outline-danger" onclick="cancelTask('{{ task.id }}')">取消任务</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+                <p>暂无已接取悬赏</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- end col -->
+    </div> <!-- end row -->
+  </div> <!-- end container-fluid -->
+
+  <!-- 评价模态框 -->
+  <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="reviewForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="reviewModalLabel">评价任务</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="reviewTaskId" name="task_id">
+            <div class="mb-3">
+              <label for="rating" class="form-label">评分 (1-5)</label>
+              <select class="form-select" id="rating" name="rating" required>
+                <option value="">选择评分</option>
+                {% for i in "12345" %}
+                  <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="comment" class="form-label">评价</label>
+              <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="submit" class="btn btn-primary">提交评价</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS + 图标库（Icon） -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap图标库（bi bi-*） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+  <!-- JavaScript for任务操作 -->
+  <script>
+    function getCsrfToken() {
+      let cookieValue = null;
+      let name = 'csrftoken';
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // 完成任务
+    function completeTask(taskId) {
+      fetch(`/api/tasks/${taskId}/status/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ status: 'completed' })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert('任务已完成！');
+          // 刷新页面或更新任务状态
+          location.reload();
+        } else {
+          alert(data.error || '无法完成任务');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('发生错误，请稍后再试。');
+      });
+    }
+
+    // 取消任务
+    function cancelTask(taskId) {
+      if (!confirm('确定要取消这个任务吗？')) return;
+      fetch(`/api/tasks/${taskId}/status/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ status: 'cancelled' })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert('任务已取消！');
+          // 刷新页面或更新任务状态
+          location.reload();
+        } else {
+          alert(data.error || '无法取消任务');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('发生错误，请稍后再试。');
+      });
+    }
+
+    // 打开评价模态框
+    function openReviewModal(taskId, otherUserName) {
+      // 设置模态框标题
+      document.getElementById('reviewModalLabel').innerText = `评价任务 - ${otherUserName}`;
+      // 设置隐藏字段任务ID
+      document.getElementById('reviewTaskId').value = taskId;
+      // 清空之前的评分和评论
+      document.getElementById('rating').value = '';
+      document.getElementById('comment').value = '';
+      // 显示模态框
+      var reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+      reviewModal.show();
+    }
+
+    // 提交评价
+    document.getElementById('reviewForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const taskId = document.getElementById('reviewTaskId').value;
+      const rating = document.getElementById('rating').value;
+      const comment = document.getElementById('comment').value;
+
+      if (!rating || !comment) {
+        alert('请填写评分和评论。');
+        return;
+      }
+
+      fetch(`/api/tasks/${taskId}/review/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ rating: rating, comment: comment })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert('评价成功！');
+          // 关闭模态框
+          var reviewModalEl = document.getElementById('reviewModal');
+          var reviewModal = bootstrap.Modal.getInstance(reviewModalEl);
+          reviewModal.hide();
+          // 刷新页面或更新任务状态
+          location.reload();
+        } else {
+          alert(data.error || '无法提交评价');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('发生错误，请稍后再试。');
+      });
+    });
+  </script>
+</body>
+</html>

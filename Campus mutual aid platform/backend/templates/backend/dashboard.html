@@ -1,0 +1,39 @@
+{% extends 'backend/base.html' %}
+
+{% block content %}
+    <h1>后台管理仪表盘</h1>
+    <div class="row my-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">总用户数</h5>
+                    <p class="card-text">{{ total_users }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">总任务数</h5>
+                    <p class="card-text">{{ total_tasks }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">完成任务数</h5>
+                    <p class="card-text">{{ completed_tasks }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">平均酬劳</h5>
+                    <p class="card-text">￥{{ average_reward }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

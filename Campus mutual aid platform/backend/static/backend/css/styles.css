@@ -1,0 +1,4 @@
+/* 示例自定义样式 */
+.table th, .table td {
+    vertical-align: middle;
+}

@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>华师校园悬赏 - 悬赏接取</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+    .sidebar {
+      background-color: #fff;
+      border-right: 1px solid #ddd;
+      min-height: 100vh;
+    }
+    .sidebar .nav-link {
+      color: #333;
+      font-weight: 500;
+    }
+    .sidebar .nav-link.active {
+      background-color: #f0f0f0;
+    }
+    .content-area {
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航栏：略，与之前相同 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center" href="#">
+        <span>华师校园悬赏</span>
+      </a>
+      <form class="d-none d-md-flex mx-auto" style="width: 40%;" action="{% url 'take_tasks' %}" method="get">
+        <!-- 搜索框示例 -->
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="搜索..."  name="q" value="{{ query|default:'' }}">
+          <button class="btn btn-outline-primary" type="submit">搜索</button>
+        </div>
+      </form>
+      <div class="d-flex align-items-center">
+        <a href="#" class="text-decoration-none me-3 position-relative">
+          <span class="text-dark">
+            <i class="bi bi-bell" style="font-size: 1.2rem;"></i>
+          </span>
+        </a>
+        <div class="dropdown">
+          <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+            <span class="me-1 text-dark">{{ user.username|default:"用户" }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'profile' %}">个人中心</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'logout_page' %}">退出登录</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 左侧栏 + 右侧主内容 -->
+  <div class="container-fluid">
+    <div class="row">
+      <!-- 左侧侧边栏 -->
+      <div class="col-12 col-md-2 sidebar py-4">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-2">
+            <a class="nav-link" href="{% url 'main' %}"><i class="bi bi-house-door me-2"></i>主页</a>
+          </li>
+          <li class="nav-item mb-2">
+            <a class="nav-link active" href="#"><i class="bi bi-collection me-2"></i>悬赏接取</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- 右侧内容 -->
+      <div class="col-12 col-md-10 content-area">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-warning">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- 发布悬赏按钮，弹出Modal -->
+        <div class="mb-3 text-end">
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+            <i class="bi bi-plus-circle me-1"></i>发布悬赏
+          </button>
+        </div>
+
+        <!-- 筛选器 -->
+        <form method="get" action="{% url 'take_tasks' %}" class="row g-3 mb-4">
+          <!-- 保留搜索关键词 -->
+          <input type="hidden" name="q" value="{{ query|default:'' }}">
+
+          <div class="col-auto">
+            <label class="form-label">时间</label>
+            <select name="time_filter" class="form-select">
+              <option value="">不限</option>
+              <option value="newest" {% if request.GET.time_filter == 'newest' %}selected{% endif %}>最新</option>
+              <option value="oldest" {% if request.GET.time_filter == 'oldest' %}selected{% endif %}>最旧</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <label class="form-label">金额</label>
+            <select name="reward_filter" class="form-select">
+              <option value="">不限</option>
+              <option value="low_to_high" {% if request.GET.reward_filter == 'low_to_high' %}selected{% endif %}>从低到高</option>
+              <option value="high_to_low" {% if request.GET.reward_filter == 'high_to_low' %}selected{% endif %}>从高到低</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <label class="form-label">类型</label>
+            <select name="type_filter" class="form-select">
+              <option value="">不限</option>
+              <option value="express" {% if request.GET.type_filter == 'express' %}selected{% endif %}>快递</option>
+              <option value="takeaway" {% if request.GET.type_filter == 'takeaway' %}selected{% endif %}>外卖</option>
+              <option value="purchase" {% if request.GET.type_filter == 'purchase' %}selected{% endif %}>代购</option>
+              <option value="other" {% if request.GET.type_filter == 'other' %}selected{% endif %}>其他</option>
+            </select>
+          </div>
+          <div class="col-auto d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">筛选</button>
+          </div>
+        </form>
+
+
+        <!-- 悬赏列表 -->
+        <div class="list-group" id="task-list">
+          {% for task in tasks %}
+          <div class="list-group-item d-flex justify-content-between align-items-center" id="task-item-{{ task.id }}">
+            <div>
+              <h5 class="mb-1">{{ task.title }}</h5>
+              <p class="mb-1 text-muted">
+                {{ task.description|truncatechars:80 }}
+              </p>
+              <small class="text-secondary">
+                类型：{% if task.type == 'express' %}快递
+                      {% elif task.type == 'takeaway' %}外卖
+                      {% elif task.type == 'purchase' %}代购
+                      {% else %}其他
+                      {% endif %}
+                | 酬劳：￥{{ task.reward }}
+                | 发布时间：{{ task.created_at|date:"Y-m-d H:i" }}
+              </small>
+            </div>
+            <!-- 接取按钮 (Ajax) -->
+            <button class="btn btn-success btn-sm" onclick="takeTask('{{ task.id }}')">接取</button>
+          </div>
+          {% empty %}
+          <div class="list-group-item">
+            暂无可接取的悬赏
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 发布悬赏Modal -->
+  <div class="modal fade" id="createTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="create_task">
+
+          <div class="modal-header">
+            <h5 class="modal-title">发布悬赏</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="id_title" class="form-label">标题</label>
+              <input type="text" class="form-control" id="id_title" name="title" required>
+            </div>
+            <div class="mb-3">
+              <label for="id_description" class="form-label">描述</label>
+              <textarea class="form-control" id="id_description" name="description" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="id_reward" class="form-label">酬劳</label>
+              <input type="number" step="0.01" class="form-control" id="id_reward" name="reward" required>
+            </div>
+            <div class="mb-3">
+              <label for="id_task_type" class="form-label">类型</label>
+              <select class="form-select" id="id_task_type" name="task_type" required>
+                <option value="express">快递</option>
+                <option value="takeaway">外卖</option>
+                <option value="purchase">代购</option>
+                <option value="other" selected>其他</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="submit" class="btn btn-primary">发布</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Ajax接取 悬赏 JS -->
+  <script>
+    function getCsrfToken() {
+      // 从DOM中获取 CSRF token（Django模板通常会在 <head> 里有个 name="csrfmiddlewaretoken" 的cookie，
+      // 或你也可以用 <meta> 方式存储）
+      // 简易示例（从Cookie读取）
+      let cookieValue = null;
+      let name = 'csrftoken';
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+    }
+
+    function takeTask(taskId) {
+      // 使用 fetch 做Ajax POST
+      fetch(`/api/ajax_take_task/${taskId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'ok') {
+          // 接单成功，移除该悬赏条目或标记为“已接单”
+          const item = document.getElementById(`task-item-${taskId}`);
+          if (item) {
+            item.remove();
+          }
+          alert('接取成功!');
+        } else {
+          alert(data.error || '接取失败');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('请求出错');
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+
+body {
+    font-family: "Microsoft YaHei", sans-serif;
+}
+
+.hero-section {
+    position: relative;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+.card i {
+    font-size: 3rem;
+}
+
+footer {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}

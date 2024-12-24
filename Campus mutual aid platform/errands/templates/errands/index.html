@@ -1,0 +1,133 @@
+<!-- errands/templates/errands/index.html -->
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>华师校园悬赏 - 首页</title>
+    <!-- 引入Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- 引入自定义CSS -->
+    <link rel="stylesheet" href="{% static 'errands/css/styles.css' %}">
+    <style>
+        /* 自定义样式 */
+        .hero-section {
+            background: url("{% static 'errands/images/hero-bg.jpg' %}") no-repeat center center;
+            background-size: cover;
+            color: white;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .hero-section h1 {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .hero-section p {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">华师校园悬赏</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="切换导航">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'main' %}">主页</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'take_tasks' %}">悬赏接取</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">个人中心</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout_page' %}">退出登录</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login_page' %}">登录</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register_page' %}">注册</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄区 -->
+    <section class="hero-section">
+        <div>
+            <h1>欢迎来到华师校园悬赏系统</h1>
+            <p>发布任务，便捷寻求帮助；接取任务，轻松赚取酬劳</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'take_tasks' %}" class="btn btn-primary btn-lg mt-3">开始悬赏</a>
+            {% else %}
+                <a href="{% url 'register_page' %}" class="btn btn-primary btn-lg mt-3">立即注册</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- 功能介绍 -->
+    <section class="container my-3">
+        <h2 class="text-center mb-3">我们的服务</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-card-checklist display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">发布任务</h5>
+                        <p class="card-text">轻松发布您的校园需求，等待合适的人选接取任务。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-people-fill display-4 text-success"></i>
+                        <h5 class="card-title mt-3">接取任务</h5>
+                        <p class="card-text">浏览并接取适合您的任务，完成后获得丰厚酬劳。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-chat-dots display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">评价系统</h5>
+                        <p class="card-text">完成任务后相互评价，建立可信赖的校园悬赏社区。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 底部 -->
+    <footer class="bg-light text-center py-4">
+        <p>&copy; 2024 华师校园悬赏系统. 保留所有权利。</p>
+    </footer>
+
+    <!-- 引入Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 引入Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</body>
+</html>

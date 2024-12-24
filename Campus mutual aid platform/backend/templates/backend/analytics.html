@@ -1,0 +1,136 @@
+{% extends 'backend/base.html' %}
+
+{% block content %}
+    <h1>数据分析</h1>
+    <div class="row my-4">
+        <div class="col-md-6">
+            <canvas id="tasksPerStatusChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <canvas id="usersPerTaskChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row my-4">
+        <div class="col-md-6">
+            <h3>用户统计</h3>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>总用户数：</strong> {{ user_stats.total_users }}</li>
+                <li class="list-group-item"><strong>活跃用户数：</strong> {{ user_stats.active_users }}</li>
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h3>任务统计</h3>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>总任务数：</strong> {{ task_stats.total_tasks }}</li>
+                <li class="list-group-item"><strong>完成任务数：</strong> {{ task_stats.completed_tasks }}</li>
+                <li class="list-group-item"><strong>待接取任务数：</strong> {{ task_stats.pending_tasks }}</li>
+                <li class="list-group-item"><strong>进行中任务数：</strong> {{ task_stats.in_progress_tasks }}</li>
+                <li class="list-group-item"><strong>已取消任务数：</strong> {{ task_stats.cancelled_tasks }}</li>
+                <li class="list-group-item"><strong>平均酬劳：</strong> ￥{{ task_stats.average_reward }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row my-4">
+        <div class="col-md-6">
+            <h3>评分统计</h3>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>平均评分：</strong> {{ rating_stats.average_rating|floatformat:2 }} / 5</li>
+                <li class="list-group-item"><strong>总评价数：</strong> {{ rating_stats.total_reviews }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 任务状态分布图
+        const tasksPerStatusCtx = document.getElementById('tasksPerStatusChart').getContext('2d');
+        const tasksPerStatusData = {
+            labels: [
+                {% for item in tasks_per_status %}
+                    "{{ item.status|title }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                label: '任务数',
+                data: [
+                    {% for item in tasks_per_status %}
+                        {{ item.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)',
+                ],
+                borderWidth: 1
+            }]
+        };
+        const tasksPerStatusChart = new Chart(tasksPerStatusCtx, {
+            type: 'pie',
+            data: tasksPerStatusData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: '任务状态分布'
+                    }
+                }
+            },
+        });
+
+        // 用户接取任务数量图
+        const usersPerTaskCtx = document.getElementById('usersPerTaskChart').getContext('2d');
+        const usersPerTaskData = {
+            labels: [
+                {% for item in users_per_task %}
+                    "{{ item.assigned_to__username }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                label: '接取任务数',
+                data: [
+                    {% for item in users_per_task %}
+                        {{ item.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                borderWidth: 1
+            }]
+        };
+        const usersPerTaskChart = new Chart(usersPerTaskCtx, {
+            type: 'bar',
+            data: usersPerTaskData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: '接取任务最多的用户'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        precision: 0
+                    }
+                }
+            },
+        });
+    </script>
+{% endblock %}
